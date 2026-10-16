@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONTEXT AWARE LINUX — Assistant</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+
+  <aside class="context-panel">
+    <div class="panel-header">
+      <span class="dot" id="conn-dot"></span>
+      <h1>CONTEXT AWARE LINUX</h1>
+    </div>
+    <div class="panel-sub">live system context</div>
+
+    <a href="/evaluation" class="eval-link">📊 Evaluation Dashboard</a>
+
+    <div class="ctx-group" id="ctx-host"></div>
+
+    <div class="ctx-group">
+      <div class="ctx-label">cpu</div>
+      <div class="meter"><div class="meter-fill" id="cpu-fill"></div></div>
+      <div class="ctx-value" id="cpu-value">—</div>
+    </div>
+
+    <div class="ctx-group">
+      <div class="ctx-label">memory</div>
+      <div class="meter"><div class="meter-fill" id="mem-fill"></div></div>
+      <div class="ctx-value" id="mem-value">—</div>
+    </div>
+
+
+    <div class="ctx-group">
+      <div class="ctx-label">user</div>
+      <div class="ctx-value" id="user-value">—</div>
+    </div>
+
+    <button class="refresh-btn" id="refresh-ctx">↻ refresh context</button>
+
+    <div class="panel-footer">
+      every value on this panel is read live from this machine — nothing here is simulated.
+    </div>
+  </aside>
+
+  <main class="chat-panel">
+    <div class="chat-log" id="chat-log">
+      <div class="msg msg-system">
+        <div class="msg-label">context aware linux</div>
+        <div class="msg-body">
+          Ask me about this machine — disk space, CPU/RAM, processes, services, file permissions, logs.
+          I'll pull real data before answering, and I'll never run a system-changing command without asking you first.
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <input type="text" id="query-input" placeholder="Why is my disk almost full?" autocomplete="off">
+      <button id="send-btn">Ask</button>
+    </div>
+  </main>
+
+</div>
+
+<template id="tpl-confirm-card">
+  <div class="confirm-card">
+    <div class="confirm-row"><span class="confirm-k">command</span><code class="confirm-cmd"></code></div>
+    <div class="confirm-row"><span class="confirm-k">risk</span><span class="risk-badge"></span></div>
+    <div class="confirm-row"><span class="confirm-k">effect</span><span class="confirm-effect"></span></div>
+    <div class="confirm-actions">
+      <button class="btn-confirm">Confirm &amp; run</button>
+      <button class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</template>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

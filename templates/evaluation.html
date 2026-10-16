@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONTEXT AWARE LINUX — Evaluation Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='evaluation.css') }}">
+</head>
+<body class="eval-body">
+<div class="eval-app">
+
+  <header class="eval-header">
+    <div class="eval-header-left">
+      <span class="dot"></span>
+      <h1>CONTEXT AWARE LINUX</h1>
+      <span class="eval-header-sep">/</span>
+      <span class="eval-header-title">evaluation</span>
+    </div>
+    <a href="/" class="eval-back-link">← back to assistant</a>
+  </header>
+
+  <nav class="eval-tabs">
+    <button class="eval-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="eval-tab" data-tab="testcases">Test Cases</button>
+    <button class="eval-tab" data-tab="review">Review Queue</button>
+  </nav>
+
+  <!-- ============ DASHBOARD TAB ============ -->
+  <section class="eval-tab-panel" id="tab-dashboard">
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Evaluations Run</div>
+        <div class="stat-value" id="stat-total-run">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Scored Evaluations</div>
+        <div class="stat-value" id="stat-total-scored">—</div>
+      </div>
+      <div class="stat-card stat-card-accent">
+        <div class="stat-label">Overall System Evaluation Score</div>
+        <div class="stat-value" id="stat-overall">—</div>
+        <div class="stat-sub" id="stat-overall-sub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Fully Successful</div>
+        <div class="stat-value stat-good" id="stat-fully">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Partially Successful</div>
+        <div class="stat-value stat-warn" id="stat-partial">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Failed</div>
+        <div class="stat-value stat-bad" id="stat-failed">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Safety Handling Score</div>
+        <div class="stat-value" id="stat-safety">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Context Correctness Score</div>
+        <div class="stat-value" id="stat-context">—</div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Result Breakdown</div>
+        <div id="pie-chart-wrap"></div>
+        <div class="chart-legend" id="pie-legend"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Category-wise Score (cumulative)</div>
+        <div id="bar-chart-wrap"></div>
+      </div>
+      <div class="chart-card chart-card-wide">
+        <div class="chart-title">Criterion-wise Score (cumulative)</div>
+        <div id="criterion-chart-wrap"></div>
+      </div>
+    </div>
+
+    <div class="empty-note" id="dashboard-empty-note" style="display:none;">
+      No scored evaluations yet. Create or run a query below, then score it in the Review Queue to populate this dashboard.
+    </div>
+  </section>
+
+  <!-- ============ TEST CASES TAB ============ -->
+  <section class="eval-tab-panel hidden" id="tab-testcases">
+
+    <div class="panel-block">
+      <div class="panel-block-title">Evaluate an arbitrary query</div>
+      <div class="panel-block-hint">
+        Run any natural-language query straight through the assistant. It's automatically evaluated against all six criteria from the real evidence produced — no need to save it as a test case first, and no manual scoring required.
+      </div>
+      <div class="new-tc-form">
+        <select id="quick-eval-category"></select>
+        <input type="text" id="quick-eval-query" placeholder="e.g. Analyze all mounted filesystems and tell me which one is closest to being full.">
+        <button id="quick-eval-submit">Run Evaluation</button>
+      </div>
+    </div>
+
+    <div class="panel-block">
+      <div class="panel-block-title">New Test Case</div>
+      <div class="panel-block-hint">
+        Test cases are optional, reusable saved queries — handy for a demo set you'll run again later. Submitting the same category + query again (whitespace/case ignored) reuses the existing test case instead of creating a duplicate.
+      </div>
+      <div class="new-tc-form">
+        <select id="new-tc-category"></select>
+        <input type="text" id="new-tc-query" placeholder="e.g. Why is my disk almost full?">
+        <button id="new-tc-submit">Add</button>
+      </div>
+    </div>
+
+    <div class="panel-block">
+      <div class="panel-block-title">All Test Cases</div>
+      <div id="test-case-list" class="tc-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ REVIEW QUEUE TAB ============ -->
+  <section class="eval-tab-panel hidden" id="tab-review">
+    <div class="review-toolbar">
+      <button id="review-refresh-btn">Refresh</button>
+      <button id="retry-all-btn" style="display:none;">Retry failed evaluations</button>
+      <span id="review-updated" class="review-updated">Loading…</span>
+    </div>
+    <div class="panel-block latest-block">
+      <div class="panel-block-title">Latest run</div>
+      <div class="panel-block-hint">The most recent result, always shown first — whether it was scored automatically or needs attention.</div>
+      <div id="latest-list" class="result-list"></div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-block-title">Needs attention</div>
+      <div class="panel-block-hint">
+        Normally empty — new runs are scored automatically. Results land here only if automatic evaluation couldn't complete (e.g. a transient evaluator error), or if a legacy manually-scored run was never finished.
+      </div>
+      <div id="pending-list" class="result-list"></div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-block-title">Scored results (evaluation history)</div>
+      <div class="panel-block-hint">
+        Each result shows the six criteria with the evidence the evaluator used. You can still submit an explicit override on any result below.
+      </div>
+      <div id="scored-list" class="result-list"></div>
+    </div>
+  </section>
+
+</div>
+
+<template id="tpl-tc-row">
+  <div class="tc-row">
+    <div class="tc-row-main">
+      <span class="tc-category"></span>
+      <span class="tc-query"></span>
+    </div>
+    <div class="tc-row-actions">
+      <button class="tc-run-btn">Run</button>
+      <button class="tc-delete-btn">Delete</button>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-result-card">
+  <div class="result-card">
+    <div class="result-card-head">
+      <span class="result-category"></span>
+      <span class="eval-mode-badge"></span>
+      <span class="result-classification"></span>
+      <button class="toggle-details-btn">Show details</button>
+    </div>
+    <div class="result-query"></div>
+    <div class="result-section result-eval-error-section" style="display:none;">
+      <div class="result-section-label">automatic evaluation incomplete</div>
+      <pre class="result-eval-error"></pre>
+      <button class="retry-eval-btn">Retry automatic evaluation</button>
+    </div>
+    <div class="result-section">
+      <div class="result-section-label">context collected</div>
+      <pre class="result-context"></pre>
+    </div>
+    <div class="result-section">
+      <div class="result-section-label">assistant response</div>
+      <pre class="result-response"></pre>
+    </div>
+    <div class="result-section result-validation-section" style="display:none;">
+      <div class="result-section-label">backend validation</div>
+      <pre class="result-validation"></pre>
+    </div>
+    <div class="result-section result-error-section" style="display:none;">
+      <div class="result-section-label">pipeline / LLM error</div>
+      <pre class="result-error"></pre>
+    </div>
+    <div class="result-section-label">criteria</div>
+    <div class="criteria-grid"></div>
+    <div class="notes-row">
+      <label>Evaluator notes</label>
+      <textarea class="notes-input" rows="2"></textarea>
+    </div>
+    <div class="result-actions">
+      <button class="save-eval-btn">Save Evaluation</button>
+      <button class="delete-result-btn">Delete result</button>
+      <span class="score-readout"></span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-criterion-row">
+  <div class="criterion-row">
+    <div class="criterion-row-top">
+      <span class="criterion-label"></span>
+      <select class="criterion-select">
+        <option value="pass">Pass</option>
+        <option value="partial">Partial</option>
+        <option value="fail">Fail</option>
+        <option value="n/a" selected>N/A</option>
+      </select>
+    </div>
+    <div class="criterion-evidence"></div>
+  </div>
+</template>
+
+<script src="{{ url_for('static', filename='evaluation.js') }}?v=2"></script>
+</body>
+</html>
