@@ -1,4 +1,4 @@
-# ai-linux-assistant
+# Context - Aware AI Assistant for Linux Operations using NLP
 
 A Context-Aware AI Assistant for Linux Operations using NLP. You ask questions
 in plain English ("why is my disk almost full?"), it collects **real** data from
