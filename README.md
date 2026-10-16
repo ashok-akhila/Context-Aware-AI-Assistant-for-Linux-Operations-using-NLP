@@ -1,6 +1,6 @@
 # ai-linux-assistant
 
-A context-aware AI assistant for Linux system administration. You ask questions
+A Context-Aware AI Assistant for Linux Operations using NLP. You ask questions
 in plain English ("why is my disk almost full?"), it collects **real** data from
 the machine it's running on, sends that real data to an LLM for explanation,
 and — if a fix requires running a command — shows you exactly what it wants to
@@ -11,29 +11,7 @@ Nothing in this project is simulated. There is no fake filesystem, no invented
 CPU/RAM numbers, no pretend command output. Every number and every command
 result comes from the actual Linux machine running the app.
 
-## How it's built (status)
-
-Phases 1–6 and 8–13 from the project plan are implemented and have been
-smoke-tested against a real Linux container while building this:
-
-| Phase | What | Status |
-|---|---|---|
-| 1–2 | Ubuntu/WSL2 + Flask app | ✅ `app.py` |
-| 3 | Real system-context collection | ✅ `context/system_info.py` |
-| 4 | CPU/RAM/disk/process monitoring | ✅ `context/disk_info.py`, `context/process_info.py` |
-| 5 | File/permission analysis | ✅ `context/file_info.py` |
-| 6 | Log retrieval (journalctl, scoped) | ✅ `logs/log_analyzer.py` |
-| 7 | OpenRouter integration | ✅ `ai/llm_service.py` (needs your API key — see below) |
-| 8 | Structured intent/action JSON | ✅ enforced schema in `ai/prompts.py` |
-| 9 | Explanation + recommendation | ✅ part of the structured LLM response |
-| 10 | Command validation + risk classification | ✅ `security/risk_classifier.py`, `security/command_validator.py` |
-| 11 | User confirmation | ✅ frontend confirm card + backend `confirmed` flag |
-| 12 | Controlled execution | ✅ `execution/command_executor.py` — real subprocess, no `shell=True` |
-| 13 | Error analysis | ✅ `/api/execute` re-prompts the LLM with real stderr/return code |
-| 14–15 | UI polish + full test pass | ✅ done, plus an Evaluation/Performance Analysis module added on top (see below) |
-
 ## Architecture
-
 ```
 Browser (chat UI)
    │
@@ -73,7 +51,7 @@ anything is shown to you, let alone run.
 
 ## Setup
 
-**1. Get the code running (Phase 1–2)**
+**1. Get the code running**
 
 ```bash
 # Ubuntu, or Ubuntu via WSL2 on Windows
@@ -83,7 +61,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**2. Add your OpenRouter API key (Phase 7)**
+**2. Add your OpenRouter API key**
 
 ```bash
 cp .env.example .env
@@ -127,8 +105,7 @@ Note: `logs/log_analyzer.py` requires `systemctl`/`journalctl` (systemd) to
 return live service data — on a systemd-less environment it will honestly
 report that instead of faking output, per the "never fake data" rule.
 
-## What to do next (Phase 14–15)
-
+## What to do next
 The MVP pipeline is complete and wired end-to-end. Natural next steps, in
 spec order:
 
